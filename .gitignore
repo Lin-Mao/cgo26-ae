@@ -1,0 +1,10 @@
+*.so
+*.log
+*.out
+.vscode/
+
+benchmarks/
+results/
+raw_data/
+pre-results/
+Megatron-LM/
