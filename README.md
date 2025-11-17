@@ -125,11 +125,3 @@ Run
 bash bin/run_figure_14.sh
 ```
 
-
-
-### Figure 15
-
-```shell
-accelprof -v -t event_trace_mgpu ./examples/gpt3/run_dist_training.sh
-```
-
