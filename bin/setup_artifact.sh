@@ -16,6 +16,11 @@ pip install circlify
 pip install pandas
 pip install git+https://github.com/openai/whisper.git
 
+pip install gdown
+
+gdown https://drive.google.com/uc?id=1ETHKAvit9BurcypF8ZGm6fj4ORCdpxLg
+unzip pre-results.zip && rm pre-results.zip
+
 
 # Create directories
 mkdir raw_data
