@@ -60,45 +60,52 @@ def ensure_all_models(d, model_keys):
 parser = argparse.ArgumentParser()
 parser.add_argument('--result-log', type=str, required=True, help='Path to result.log file')
 parser.add_argument('--output-folder', type=str, required=True, help='Output folder for plots')
-parser.add_argument('--tag', type=str, default='', help='GPU type tag (empty string for A100, "3060" for RTX 3060)')
 args = parser.parse_args()
-
-# Determine GPU type from tag (default "" means A100)
-gpu_name = args.tag
 
 # Read data from result.log
 result_data = parse_result_log(args.result_log)
 
-# Build suffix for dictionary keys
-# When tag is "" (default), use keys without suffix (A100 default)
-# When tag is "3060", use keys with "_3060" suffix
-suffix = f"_{args.tag}" if args.tag != "" else ""
+# Extract dictionaries for A100
+orig_time_a100 = ensure_all_models(result_data.get('orig_time_a100', {}), models.keys())
+gpu_collection_a100 = ensure_all_models(result_data.get('gpu_collection_a100', {}), models.keys())
+gpu_transfer_a100 = ensure_all_models(result_data.get('gpu_transfer_a100', {}), models.keys())
+gpu_analysis_a100 = ensure_all_models(result_data.get('gpu_analysis_a100', {}), models.keys())
+gpu_total_a100 = ensure_all_models(result_data.get('gpu_total_a100', {}), models.keys())
 
-def get_dict(key_base):
-    """Get dictionary from result_data, trying with suffix first if tag is set, otherwise without suffix."""
-    if args.tag != "":
-        # Try with suffix first, then without suffix as fallback
-        return result_data.get(f'{key_base}{suffix}', result_data.get(key_base, {}))
-    else:
-        # Try without suffix first, then with "_a100" as fallback
-        return result_data.get(key_base, result_data.get(f'{key_base}_a100', {}))
+cpu_collection_a100 = ensure_all_models(result_data.get('cpu_collection_a100', {}), models.keys())
+cpu_transfer_a100 = ensure_all_models(result_data.get('cpu_transfer_a100', {}), models.keys())
+cpu_analysis_a100 = ensure_all_models(result_data.get('cpu_analysis_a100', {}), models.keys())
+cpu_total_a100 = ensure_all_models(result_data.get('cpu_total_a100', {}), models.keys())
 
-# Extract dictionaries and ensure all models exist
-orig_time = ensure_all_models(get_dict('orig_time'), models.keys())
-gpu_collection = ensure_all_models(get_dict('gpu_collection'), models.keys())
-gpu_transfer = ensure_all_models(get_dict('gpu_transfer'), models.keys())
-gpu_analysis = ensure_all_models(get_dict('gpu_analysis'), models.keys())
-gpu_total = ensure_all_models(get_dict('gpu_total'), models.keys())
+nvbit_collection_a100 = ensure_all_models(result_data.get('nvbit_collection_a100', {}), models.keys())
+nvbit_transfer_a100 = ensure_all_models(result_data.get('nvbit_transfer_a100', {}), models.keys())
+nvbit_analysis_a100 = ensure_all_models(result_data.get('nvbit_analysis_a100', {}), models.keys())
+nvbit_total_a100 = ensure_all_models(result_data.get('nvbit_total_a100', {}), models.keys())
 
-cpu_collection = ensure_all_models(get_dict('cpu_collection'), models.keys())
-cpu_transfer = ensure_all_models(get_dict('cpu_transfer'), models.keys())
-cpu_analysis = ensure_all_models(get_dict('cpu_analysis'), models.keys())
-cpu_total = ensure_all_models(get_dict('cpu_total'), models.keys())
+# Handle missing whisper entries in nvbit data for A100
+for d in (nvbit_collection_a100, nvbit_transfer_a100, nvbit_analysis_a100, nvbit_total_a100):
+    d.setdefault('whisper', 0.0)
 
-nvbit_collection = ensure_all_models(get_dict('nvbit_collection'), models.keys())
-nvbit_transfer = ensure_all_models(get_dict('nvbit_transfer'), models.keys())
-nvbit_analysis = ensure_all_models(get_dict('nvbit_analysis'), models.keys())
-nvbit_total = ensure_all_models(get_dict('nvbit_total'), models.keys())
+# Extract dictionaries for 3060
+orig_time_3060 = ensure_all_models(result_data.get('orig_time_3060', {}), models.keys())
+gpu_collection_3060 = ensure_all_models(result_data.get('gpu_collection_3060', {}), models.keys())
+gpu_transfer_3060 = ensure_all_models(result_data.get('gpu_transfer_3060', {}), models.keys())
+gpu_analysis_3060 = ensure_all_models(result_data.get('gpu_analysis_3060', {}), models.keys())
+gpu_total_3060 = ensure_all_models(result_data.get('gpu_total_3060', {}), models.keys())
+
+cpu_collection_3060 = ensure_all_models(result_data.get('cpu_collection_3060', {}), models.keys())
+cpu_transfer_3060 = ensure_all_models(result_data.get('cpu_transfer_3060', {}), models.keys())
+cpu_analysis_3060 = ensure_all_models(result_data.get('cpu_analysis_3060', {}), models.keys())
+cpu_total_3060 = ensure_all_models(result_data.get('cpu_total_3060', {}), models.keys())
+
+nvbit_collection_3060 = ensure_all_models(result_data.get('nvbit_collection_3060', {}), models.keys())
+nvbit_transfer_3060 = ensure_all_models(result_data.get('nvbit_transfer_3060', {}), models.keys())
+nvbit_analysis_3060 = ensure_all_models(result_data.get('nvbit_analysis_3060', {}), models.keys())
+nvbit_total_3060 = ensure_all_models(result_data.get('nvbit_total_3060', {}), models.keys())
+
+# Handle missing whisper entries in nvbit data for 3060
+for d in (nvbit_collection_3060, nvbit_transfer_3060, nvbit_analysis_3060, nvbit_total_3060):
+    d.setdefault('whisper', 0.0)
 
 # orig_time_rate_a100 = []
 # gpu_collection_rate_a100 = []
@@ -154,9 +161,15 @@ def to_rates(orig, collection, transfer, analysis, total, ordered_models):
     return np.array(out)
 
 
-gpu_rates = to_rates(orig_time, gpu_collection, gpu_transfer, gpu_analysis, gpu_total, models.keys())
-cpu_rates = to_rates(orig_time, cpu_collection, cpu_transfer, cpu_analysis, cpu_total, models.keys())
-nvbit_rates = to_rates(orig_time, nvbit_collection, nvbit_transfer, nvbit_analysis, nvbit_total, models.keys())
+# Calculate rates for A100
+a100_gpu_rates = to_rates(orig_time_a100, gpu_collection_a100, gpu_transfer_a100, gpu_analysis_a100, gpu_total_a100, models.keys())
+a100_cpu_rates = to_rates(orig_time_a100, cpu_collection_a100, cpu_transfer_a100, cpu_analysis_a100, cpu_total_a100, models.keys())
+a100_nvbit_rates = to_rates(orig_time_a100, nvbit_collection_a100, nvbit_transfer_a100, nvbit_analysis_a100, nvbit_total_a100, models.keys())
+
+# Calculate rates for 3060
+rtx3060_gpu_rates = to_rates(orig_time_3060, gpu_collection_3060, gpu_transfer_3060, gpu_analysis_3060, gpu_total_3060, models.keys())
+rtx3060_cpu_rates = to_rates(orig_time_3060, cpu_collection_3060, cpu_transfer_3060, cpu_analysis_3060, cpu_total_3060, models.keys())
+rtx3060_nvbit_rates = to_rates(orig_time_3060, nvbit_collection_3060, nvbit_transfer_3060, nvbit_analysis_3060, nvbit_total_3060, models.keys())
 
 
 fig, ax = plt.subplots(figsize=(9, 3.5))
@@ -165,14 +178,14 @@ bar_width = 0.12
 x = np.arange(len(models))
 
 # ---------- Styling ----------
-labels = [f'CS-GPU-{gpu_name}', f'CS-CPU-{gpu_name}', f'NVBIT-CPU-{gpu_name}']
-colors = ['#1f77b4', '#ff7f0e', '#2ca02c']
+labels = ['CS-GPU-A100', 'CS-CPU-A100', 'NVBIT-CPU-A100', 'CS-GPU-3060', 'CS-CPU-3060', 'NVBIT-CPU-3060']
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#17becf', '#e377c2', '#bcbd22']
 # hatches = ['////', '\\\\\\\\', 'xxxx', '....']  # orig / collection / transfer / analysis
 hatches = ['////', '\\\\', 'xx', '..']
 
 
-# 3 bars per model: [GPU, CPU, NVBit]
-offsets = np.array([-1, 0, 1]) * bar_width
+# 6 bars per model: [A100 GPU, A100 CPU, A100 NVBit, 3060 GPU, 3060 CPU, 3060 NVBit]
+offsets = np.array([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5]) * bar_width
 
 def stack_bars(xpos, rates, color, label):
     bottoms = np.zeros(len(models))
@@ -182,9 +195,12 @@ def stack_bars(xpos, rates, color, label):
         bottoms += rates[:, i]
     ax.bar([], [], bar_width, color=color, label=label)
 
-stack_bars(x + offsets[0], gpu_rates,   colors[0], labels[0])
-stack_bars(x + offsets[1], cpu_rates,   colors[1], labels[1])
-stack_bars(x + offsets[2], nvbit_rates, colors[2], labels[2])
+stack_bars(x + offsets[0], a100_gpu_rates,   colors[0], labels[0])
+stack_bars(x + offsets[1], a100_cpu_rates,   colors[1], labels[1])
+stack_bars(x + offsets[2], a100_nvbit_rates, colors[2], labels[2])
+stack_bars(x + offsets[3], rtx3060_gpu_rates,   colors[3], labels[3])
+stack_bars(x + offsets[4], rtx3060_cpu_rates,   colors[4], labels[4])
+stack_bars(x + offsets[5], rtx3060_nvbit_rates, colors[5], labels[5])
 
 
 ax.set_xticks(x)
@@ -197,7 +213,7 @@ ax.tick_params(axis='both', which='major', labelsize=global_font_size)
 ax.grid(axis="y", linestyle="--", alpha=0.5)
 
 # Legends: one for color (backends) and one for hatches (segments)
-color_handles = [Patch(facecolor=colors[i], edgecolor='black', label=labels[i]) for i in range(3)]
+color_handles = [Patch(facecolor=colors[i], edgecolor='black', label=labels[i]) for i in range(6)]
 hatch_handles = [Patch(facecolor='white', edgecolor='black', hatch=hatches[i],
                        label=['Execution','Collection','Transfer','Analysis'][i]) for i in range(4)]
 

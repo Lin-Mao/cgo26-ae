@@ -20,6 +20,7 @@ RESULT_DIR=${CURRENT_DIR}/results/figure_9
 
 mkdir -p ${RESULT_DIR}
 
-python3 ${PY_DIR}/process.py --log-folder ${RAW_DATA_DIR} &> ${RESULT_DIR}/result.log
+python3 ${PY_DIR}/process.py --log-folder ${RAW_DATA_DIR}/3060 --suffix "3060" &> ${RESULT_DIR}/result.log
+python3 ${PY_DIR}/process.py --log-folder ${RAW_DATA_DIR}/a100 --suffix "a100" &>> ${RESULT_DIR}/result.log
 
 python3 ${PY_DIR}/plot.py --result-log ${RESULT_DIR}/result.log --output-folder ${RESULT_DIR}

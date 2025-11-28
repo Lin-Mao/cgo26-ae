@@ -23,11 +23,11 @@ MODEL_NAME="bert"
 
 cd ${BENCH_DIR}/${MODEL_NAME}
 
-profile_prefix="accelprof -v -t time_hotness_cpu"
-run_model_cmd="python3 run_${MODEL_NAME}.py -t test"
+# profile_prefix="accelprof -v -t time_hotness_cpu"
+# run_model_cmd="python3 run_${MODEL_NAME}.py -t test"
 
-$profile_prefix $run_model_cmd
-mv run_${MODEL_NAME}.time_hotness_cpu.log ${RAW_DATA_DIR}/${MODEL_NAME}_time_hotness_cpu.log
+# $profile_prefix $run_model_cmd
+# mv run_${MODEL_NAME}.time_hotness_cpu.log ${RAW_DATA_DIR}/${MODEL_NAME}_time_hotness_cpu.log
 
 
 ########################################################
