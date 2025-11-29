@@ -26,9 +26,28 @@ mkdir -p ${RESULT_DIR}
 
 # profile all models
 model_list=("alexnet" "resnet18" "resnet34" "bert" "gpt2" "whisper")
+batch_size_list=(256 64 64 32 16 16)
 
 unset PYTORCH_CUDA_ALLOC_CONF
 export PYTORCH_CUDA_ALLOC_CONF=use_uvm:True
+echo "PYTORCH_CUDA_ALLOC_CONF=${PYTORCH_CUDA_ALLOC_CONF}"
+
+########################################################
+# profile models
+########################################################
+
+profile_prefix="accelprof -v -t uvm_advisor"
+for i in ${!model_list[@]}; do
+    model=${model_list[$i]}
+    batch_size=${batch_size_list[$i]}
+    cd ${BENCH_DIR}/${model}
+
+    run_model_cmd="python3 run_${model}.py -t test --batch_size ${batch_size} --max_iters 2"
+
+    # inference
+    $profile_prefix $run_model_cmd
+done
+
 
 ########################################################
 # collect data
@@ -48,7 +67,8 @@ prefix_command="PREFETCH_MODE=0 LD_PRELOAD=${UVM_ADVISOR_PATH}/libop_callback_uv
 for i in ${!model_list[@]}; do
     model=${model_list[$i]}
     cd ${BENCH_DIR}/$model
-    run_command="python3 run_${model}.py -t test"
+    batch_size=${batch_size_list[$i]}
+    run_command="python3 run_${model}.py -t test --batch_size ${batch_size} --max_iters 2"
     echo "${prefix_command} ${run_command}" >> ${LOG_FILE}
     for ((j=1; j<=NUM_RUNS; j++)); do
         eval "${prefix_command} ${run_command}" >> ${LOG_FILE} 2>&1
@@ -63,7 +83,8 @@ prefix_command="PREFETCH_MODE=1 LD_PRELOAD=${UVM_ADVISOR_PATH}/libop_callback_uv
 for i in ${!model_list[@]}; do
     model=${model_list[$i]}
     cd ${BENCH_DIR}/$model
-    run_command="python3 run_${model}.py -t test"
+    batch_size=${batch_size_list[$i]}
+    run_command="python3 run_${model}.py -t test --batch_size ${batch_size} --max_iters 2"
     echo "${prefix_command} ${run_command}" >> ${LOG_FILE}
     for ((j=1; j<=NUM_RUNS; j++)); do
         eval "${prefix_command} ${run_command}" >> ${LOG_FILE} 2>&1
@@ -78,7 +99,8 @@ prefix_command="PREFETCH_MODE=2 LD_PRELOAD=${UVM_ADVISOR_PATH}/libop_callback_uv
 for i in ${!model_list[@]}; do
     model=${model_list[$i]}
     cd ${BENCH_DIR}/$model
-    run_command="python3 run_${model}.py -t test"
+    batch_size=${batch_size_list[$i]}
+    run_command="python3 run_${model}.py -t test --batch_size ${batch_size} --max_iters 2"
     echo "${prefix_command} ${run_command}" >> ${LOG_FILE}
     for ((j=1; j<=NUM_RUNS; j++)); do
         eval "${prefix_command} ${run_command}" >> ${LOG_FILE} 2>&1

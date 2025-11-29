@@ -35,8 +35,8 @@ def parse_trace_to_dict(trace_text):
             if "Running" in line:
                 current_model = line.split(" ")[1]
 
-            if "Time taken:" in line and section_dict and current_model:
-                elapsed_time = re.search(r"Time taken: ([\d.]+) seconds", line)
+            if "All time taken" in line and section_dict and current_model:
+                elapsed_time = re.search(r"All time taken.*?([\d.]+) seconds", line)
                 if elapsed_time:
                     section_dict[current_model].append(float(elapsed_time.group(1)))
             line = file.readline()
