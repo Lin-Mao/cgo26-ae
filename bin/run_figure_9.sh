@@ -30,7 +30,7 @@ mkdir -p ${RESULT_DIR}
 ########################################################
 # process data
 ########################################################
-python3 ${PY_DIR}/process.py --log-folder ${RAW_DATA_DIR} &> ${RESULT_DIR}/raw_result.log
+python3 ${PY_DIR}/process_high_sample_rate.py --log-folder ${RAW_DATA_DIR} &> ${RESULT_DIR}/raw_result.log
 
 
 ########################################################
