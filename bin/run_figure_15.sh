@@ -41,6 +41,9 @@ export MGPU_PROFILING=1
 accelprof -v -t event_trace_mgpu ./run_dist_training.sh dp
 mv run_dist_training.sh.accelprof.log ${RAW_DATA_DIR}/dp.accelprof.log
 
+# wait for 5 seconds to clean GPU
+sleep 5
+
 ########################################################
 # run tensor parallel training
 ########################################################
@@ -50,6 +53,9 @@ export MGPU_PROFILING=1
 accelprof -v -t event_trace_mgpu ./run_dist_training.sh tp
 mv run_dist_training.sh.accelprof.log ${RAW_DATA_DIR}/tp.accelprof.log
 
+# wait for 5 seconds to clean GPU
+sleep 5
+
 ########################################################
 # run pipeline parallel training
 ########################################################
@@ -58,6 +64,9 @@ cd ${MEGATRON}
 export MGPU_PROFILING=1
 accelprof -v -t event_trace_mgpu ./run_dist_training.sh pp
 mv run_dist_training.sh.accelprof.log ${RAW_DATA_DIR}/pp.accelprof.log
+
+# wait for 5 seconds to clean GPU
+sleep 5
 
 rm ${MEGATRON}/run_dist_training.sh 
 
