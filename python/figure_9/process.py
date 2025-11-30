@@ -6,15 +6,20 @@ def parse_elapsed_time_to_seconds(time_str):
     return h * 3600 + m * 60 + s
 
 def extract_elapsed_time_from_file(file_path):
-    with open(file_path, 'r') as f:
-        lines = f.readlines()
-        if not lines:
-            return None
-        last_line = lines[-1]
-        if "[ACCELPROF INFO] ELAPSED TIME" in last_line:
-            time_part = last_line.strip().split(":")[-3:]  # get last 3 parts
-            return parse_elapsed_time_to_seconds(":".join(time_part))
-    return None
+    if not os.path.exists(file_path):
+        return 0
+    try:
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+            if not lines:
+                return 0
+            last_line = lines[-1]
+            if "[ACCELPROF INFO] ELAPSED TIME" in last_line:
+                time_part = last_line.strip().split(":")[-3:]  # get last 3 parts
+                return parse_elapsed_time_to_seconds(":".join(time_part))
+    except (IOError, OSError, ValueError, IndexError):
+        return 0
+    return 0
 
 # List of files to parse
 file_list = [
@@ -67,17 +72,10 @@ def main(path, suffix):
     result = {}
 
     for file_name in file_list:
-        if os.path.exists(f"{path}/{file_name}"):
-            seconds = extract_elapsed_time_from_file(f"{path}/{file_name}")
-            if seconds is not None:
-                file_name = file_name.replace(".accelprof.log", "")
-                file_name = file_name.replace("test_", "")
-                result[file_name] = seconds
-            else:
-                # print(f"Warning: No valid elapsed time found in {file_name}")
-                pass
-        else:
-            print(f"Warning: File not found: {file_name}")
+        seconds = extract_elapsed_time_from_file(f"{path}/{file_name}")
+        file_name_clean = file_name.replace(".accelprof.log", "")
+        file_name_clean = file_name_clean.replace("test_", "")
+        result[file_name_clean] = seconds
 
     # Print the result dictionary
     # print(result)
@@ -85,21 +83,21 @@ def main(path, suffix):
 
     orig_time = {}
     for model in models:
-        orig_time[model] = result["run_" + model]
+        orig_time[model] = result.get("run_" + model, 0)
 
     gpu_time = {}
     for model in models:
-        gpu_time[model] = result["gpu_" + model]
+        gpu_time[model] = result.get("gpu_" + model, 0)
 
     cpu_time = {}
     for model in models:
-        cpu_time[model] = result["cpu_" + model] * sample_rate[model]
+        cpu_time[model] = result.get("cpu_" + model, 0) * sample_rate[model]
 
     nvbit_time = {}
     for model in models:
         if model == "whisper":
             continue
-        nvbit_time[model] = result["nvbit_" + model] * sample_rate[model]
+        nvbit_time[model] = result.get("nvbit_" + model, 0) * sample_rate[model]
 
 
     if suffix != "":

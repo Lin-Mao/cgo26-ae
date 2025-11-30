@@ -8,6 +8,8 @@ fi
 
 BENCH_DIR=${CURRENT_DIR}/benchmarks/
 RAW_DATA_DIR=${CURRENT_DIR}/raw_data/figure_10
+RESULT_DIR=${CURRENT_DIR}/results/figure_10
+PY_DIR=${CURRENT_DIR}/python/figure_10
 
 mkdir -p ${RAW_DATA_DIR}
 
@@ -28,7 +30,7 @@ for i in ${!model_list[@]}; do
     echo "[Execution] model: $model"
     run_model_cmd="python3 run_${model}.py -t test"
     ${prefix_command} ${run_model_cmd}
-    mv run_${model}.accelprof.log ${RAW_DATA_DIR}/test_run_${model}.accelprof.log
+    mv run_${model}.accelprof.log ${RAW_DATA_DIR}/run_${model}.accelprof.log
 done
 
 # run the application with app_analysis with GPU analysis
@@ -43,7 +45,7 @@ for i in ${!model_list[@]}; do
 done
 
 # sample_rate_list=("30" "30" "50" "10" "10" "10")
-sample_rate_list=("150" "150" "250" "50" "50" "50")
+sample_rate_list=("60" "60" "100" "20" "20" "20")
 
 # run the application with app_analysis_cpu
 prefix_command="accelprof -v -t app_analysis_cpu"
@@ -70,3 +72,18 @@ for i in ${!model_list[@]}; do
     ${prefix_command} ${run_model_cmd}
     mv run_${model}.accelprof.log ${RAW_DATA_DIR}/test_nvbit_${model}.accelprof.log
 done
+
+
+
+########################################################
+# process data
+########################################################
+python3 ${PY_DIR}/process.py --log-folder ${RAW_DATA_DIR} &> ${RESULT_DIR}/raw_result.log
+
+
+
+########################################################
+# plot figure
+########################################################
+
+python3 ${PY_DIR}/plot_single.py --result-log ${RESULT_DIR}/raw_result.log --output-folder ${RESULT_DIR}
