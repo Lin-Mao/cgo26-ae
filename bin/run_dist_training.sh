@@ -30,7 +30,7 @@ fi
 
 GPUS_PER_NODE=2   # change as needed
 MASTER_ADDR=localhost
-MASTER_PORT=6000
+MASTER_PORT=29500
 NUM_NODES=1
 NODE_RANK=0
 WORLD_SIZE=$(($GPUS_PER_NODE*$NUM_NODES))
@@ -53,6 +53,9 @@ GPT_MODEL_ARGS=(
   --attention-dropout 0.1
   --init-method-std 0.02
   --attention-backend auto
+  --transformer-impl local
+  --no-persist-layer-norm
+  --no-masked-softmax-fusion
 )
 
 TRAINING_ARGS=(
@@ -68,6 +71,7 @@ TRAINING_ARGS=(
     --lr-decay-style cosine
     --min-lr 1.0e-5
     --lr-warmup-fraction .001
+    --no-gradient-accumulation-fusion
 )
 
 # Mock data + NullTokenizer (no vocab/merge needed)
