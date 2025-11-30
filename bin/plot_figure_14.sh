@@ -6,6 +6,13 @@ if [ $(basename ${CURRENT_DIR}) != "cgo26-ae" ]; then
     exit 1
 fi
 
+# get one argument from the command line
+if [ $# -ne 1 ]; then
+    echo "Error: Please provide the log folder"
+    exit 1
+fi
+
+
 BENCH_DIR=${CURRENT_DIR}/benchmarks/
 RESULT_DIR=${CURRENT_DIR}/results/figure_14
 PY_DIR=${CURRENT_DIR}/python/figure_14
