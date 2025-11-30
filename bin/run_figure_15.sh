@@ -59,6 +59,8 @@ export MGPU_PROFILING=1
 accelprof -v -t event_trace_mgpu ./run_dist_training.sh pp
 mv run_dist_training.sh.accelprof.log ${RAW_DATA_DIR}/pp.accelprof.log
 
+rm ${MEGATRON}/run_dist_training.sh 
+
 ########################################################
 # process data
 ########################################################
@@ -77,3 +79,4 @@ python3 ${PY_DIR}/process.py --log-file ${RAW_DATA_DIR}/pp.accelprof.log --outpu
 ########################################################
 
 python3 ${PY_DIR}/plot.py --log-path ${RESULT_DIR} --output-folder ${RESULT_DIR}
+
