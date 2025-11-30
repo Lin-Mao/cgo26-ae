@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import re
+import os
+import argparse
 from matplotlib.ticker import FuncFormatter
 import numpy as np
 import matplotlib as mpl
@@ -16,7 +18,7 @@ def read_mem_data(fname):
                 mem.append(int(m.group(0)))
     return mem
 
-def draw_parallelism(path, file_name):
+def draw_parallelism(path, file_name, output_folder):
     gpu0 = read_mem_data(f"{path}/{file_name}_0.txt")
     gpu1 = read_mem_data(f"{path}/{file_name}_1.txt")
 
@@ -118,16 +120,37 @@ def draw_parallelism(path, file_name):
 
     # plt.tight_layout()
 
-    fig_name = f"memory_over_time_{path}"
+    fig_name = f"{output_folder}/memory_over_time_{os.path.basename(path)}"
     fmt = 'pdf'
     fig_filename = f"{fig_name}.{fmt}"
     plt.savefig(fig_filename, format=f'{fmt}', dpi=600, bbox_inches='tight', pad_inches=0.01)
+    plt.close()
 
 
-if __name__ == "__main__":
-    parallelisms = ["tp", "dp", "pp"]
+def main(log_path, output_folder):
+    parallelisms = [f"{log_path}/tp", f"{log_path}/dp", f"{log_path}/pp"]
     # parallelisms = ["tp"]
     for path in parallelisms:
         print(f"Drawing {path}...")
         file_name = "tensor_gpu"
-        draw_parallelism(path, file_name)
+        draw_parallelism(path, file_name, output_folder)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--log-path",
+        type=str,
+        required=True,
+        help=""
+    )
+    parser.add_argument(
+        "--output-folder",
+        type=str,
+        required=True,
+        help="Output folder for the plot"
+    )
+    args = parser.parse_args()
+
+    main(args.log_path, args.output_folder)
+
