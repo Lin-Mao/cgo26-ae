@@ -28,6 +28,26 @@ echo "" > ${LOG_FILE}
 
 
 model_list=("alexnet" "resnet18" "resnet34" "bert" "gpt2" "whisper")
+
+
+unset PYTORCH_CUDA_ALLOC_CONF
+export PYTORCH_CUDA_ALLOC_CONF=use_uvm:True
+echo "PYTORCH_CUDA_ALLOC_CONF=${PYTORCH_CUDA_ALLOC_CONF}" >> ${LOG_FILE}
+
+profile_prefix="accelprof -v -t uvm_advisor"
+for model in ${model_list[@]}; do
+    cd ${BENCH_DIR}/${model}
+
+    run_model_cmd="python3 run_${model}.py -t test --max_iters 2"
+
+    # inference
+    $profile_prefix $run_model_cmd
+done
+
+
+########################################################
+# collect data
+########################################################
 # model memory size in MB
 gddr_size_list=(1528 1232 1261 1179 4148 2304)
 
@@ -40,9 +60,6 @@ echo "OVERSUBSCRIPTION_FACTOR=${OVERSUBSCRIPTION_FACTOR}" >> ${LOG_FILE}
 echo "PYTORCH_CUDA_ALLOC_CONF=${PYTORCH_CUDA_ALLOC_CONF}" >> ${LOG_FILE}
 
 
-########################################################
-# collect data
-########################################################
 UVM_ADVISOR_PATH=${CURRENT_DIR}/uvm-advisor
 
 cd ${UVM_ADVISOR_PATH}
@@ -59,7 +76,7 @@ for i in ${!model_list[@]}; do
     size=${gddr_size_list[$i]}
     ${UVM_ADVISOR_PATH}/uvm_helper/ctrl_gddr_size.out $size &> /dev/null &
     cd ${BENCH_DIR}/$model
-    run_command="python3 run_${model}.py -t test"
+    run_command="python3 run_${model}.py -t test --max_iters 2"
     echo "${prefix_command} ${run_command}" >> ${LOG_FILE}
     for ((j=1; j<=NUM_RUNS; j++)); do
         eval "${prefix_command} ${run_command}" >> ${LOG_FILE} 2>&1
@@ -77,7 +94,7 @@ for i in ${!model_list[@]}; do
     size=${gddr_size_list[$i]}
     ${UVM_ADVISOR_PATH}/uvm_helper/ctrl_gddr_size.out $size &> /dev/null &
     cd ${BENCH_DIR}/$model
-    run_command="python3 run_${model}.py -t test"
+    run_command="python3 run_${model}.py -t test --max_iters 2"
     echo "${prefix_command} ${run_command}" >> ${LOG_FILE}
     for ((j=1; j<=NUM_RUNS; j++)); do
         eval "${prefix_command} ${run_command}" >> ${LOG_FILE} 2>&1
@@ -95,7 +112,7 @@ for i in ${!model_list[@]}; do
     size=${gddr_size_list[$i]}
     ${UVM_ADVISOR_PATH}/uvm_helper/ctrl_gddr_size.out $size &> /dev/null &
     cd ${BENCH_DIR}/$model
-    run_command="python3 run_${model}.py -t test"
+    run_command="python3 run_${model}.py -t test --max_iters 2"
     echo "${prefix_command} ${run_command}" >> ${LOG_FILE}
     for ((j=1; j<=NUM_RUNS; j++)); do
         eval "${prefix_command} ${run_command}" >> ${LOG_FILE} 2>&1
